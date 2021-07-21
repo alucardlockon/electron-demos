@@ -1,4 +1,4 @@
-# Electron桌面应用实战
+# Electron桌面应用开发实战
 
 ![electron](./electron_md_images/logo.jpeg)
 
