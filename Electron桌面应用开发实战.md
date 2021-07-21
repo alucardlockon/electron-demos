@@ -138,8 +138,8 @@ npx create-electron-app todo
 
 ```zsh
 yarn add lodash 
-yarn add jquery^3.3.1
-yarn add bootstrap^4.1.3
+yarn add jquery@3.3.1
+yarn add bootstrap@4.1.3
 yarn add popper.js
 yarn add flatpickr
 yarn add @forevolve/bootstrap-dark
