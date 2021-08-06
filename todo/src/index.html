@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>TODO</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../node_modules/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="../node_modules/@forevolve/bootstrap-dark/dist/css/bootstrap-light.min.css">
+    <link rel="stylesheet" href="../node_modules/@forevolve/bootstrap-dark/dist/css/bootstrap-prefers-dark.min.css">
+  </head>
+  <body>
+    <h1>todo app</h1>
+    <p>This is a todo application.</p>
+    <button class="btn btn-secondary" id="dark_mode_toggle">主题</button>
+    <div class="btn-group todo-btn-group">
+      <button class="btn btn-primary" id="add_task">添加任务</button>
+      <button class="btn btn-success" id="complete_task">完成任务</button>
+      <button class="btn btn-danger" id="delete_task">删除任务</button>
+    </div>
+    <div class="list-group todo-list-group">
+    </div>
+    <div class="modal" id="modal_task_detail">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">添加任务</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>
+            <div>
+              <form action="">
+                <div class="form-group">
+                  <label for="title" class="col-form-label">标题</label>
+                  <input type="text" class="form-control" name="title" id="title">
+                </div>
+                <div class="form-group">
+                  <label for="time" class="col-form-label">时间</label>
+                  <input type="text" class="form-control" name="time" id="time">
+                </div>
+              </form>
+            </div>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-primary" id="modal_task_detail_btn">添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" tabindex="-1" id="modal_confirm_delete">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">确认删除</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>确认要删除此任务吗?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-danger" id="modal_confrim_delete_btn">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="../node_modules/lodash/lodash.min.js"></script>
+    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../node_modules/flatpickr/dist/flatpickr.min.js"></script>
+    <script>
+      // 当前选择任务
+      let currentTask = null
+      let theme = 'Light';
+
+      // 所有任务, 任务状态: active:激活 , completed:完成
+      let tasks = [
+        { id: _.uniqueId(), time: '07:00', state: 'completed', title: '吃早饭' },
+        { id: _.uniqueId(), time: '08:00', state: 'active', title: '学习electron' },
+        { id: _.uniqueId(), time: '11:30', state: 'active', title: '吃午饭' },
+        { id: _.uniqueId(), time: '13:00', state: 'active', title: '学习react' },
+        { id: _.uniqueId(), time: '15:00', state: 'active', title: '学习vue' },
+        { id: _.uniqueId(), time: '18:00', state: 'active', title: '吃晚饭' },
+        { id: _.uniqueId(), time: '22:00', state: 'active', title: '睡觉' },
+      ]
+
+      $(() => {
+        flatpickr("#time", { enableTime: true, noCalendar: true, dateFormat: 'H:i' });
+
+        renderList()
+
+        // 点击添加任务
+        $('#add_task').click((event) => {
+          $('#title').val('');
+          $('#time').val('');
+          $('#modal_task_detail').modal({})
+        })
+
+        // 确认添加任务
+        $('#modal_task_detail_btn').click((event) => {
+          const time = $('#time').val()
+          const title = $('#title').val()
+          if (!time || !title) {
+            alert('请填写内容')
+            return
+          }
+          tasks.push({ id: _.uniqueId(), time: time, title: title, state: 'active' })
+          tasks = _.orderBy(tasks, ['time', 'asc'])
+          renderList()
+          $('#modal_task_detail').modal('hide')
+        })
+
+        // 点击完成任务
+        $('#complete_task').click((event) => {
+          if (!currentTask || currentTask.state !== 'active') {
+            alert('请选择任务');
+            return
+          }
+          const finded = _.find(tasks, { id: currentTask.id })
+          if (finded) {
+            finded.state = 'completed'
+            renderList()
+          }
+        })
+
+        // 点击删除任务
+        $('#delete_task').click((event) => {
+          if (!currentTask) {
+            alert('请选择任务');
+            return
+          }
+          $('#modal_confirm_delete').modal({})
+        })
+
+        // 确认删除
+        $('#modal_confrim_delete_btn').click(() => {
+          if (!currentTask) {
+            alert('请选择任务');
+            return
+          }
+          const finded = _.find(tasks, { id: currentTask.id })
+          if (finded) {
+            _.remove(tasks, it => it.id == currentTask.id)
+            renderList()
+            $('#modal_confirm_delete').modal('hide')
+          }
+        })
+
+      })
+
+      // 渲染列表, 绑定事件
+      const renderList = async () => {
+        $('.todo-list-group').html(
+          tasks.map(it => $(`<a href="#" data-id="${it.id}"
+              class="list-group-item list-group-item-action ${it.state === 'completed' ? 'overline' : ''}">
+                [${it.time}]${it.title}</a>`))
+        )
+
+        $('.todo-list-group a').click((event) => {
+          $('.todo-list-group a').removeClass('active')
+          const $target = $(event.currentTarget)
+          const finded = _.find(tasks, { id: $target.attr('data-id') })
+          currentTask = finded
+          $target.addClass('active')
+        })
+
+        currentTask = null
+      }
+      $(() => {
+            // 切换黑暗模式
+            $('#dark_mode_toggle').click(async ()=>{
+              const isDarkMode = await window.darkMode.toggle()
+              theme = isDarkMode ? 'Dark' : 'Light'
+              $('#dark_mode_toggle').html('主题:'+(theme==='Dark'?'暗':'亮️'))
+            })
+
+          })
+      $(async ()=>{
+        // 设置系统默认主题色
+        const isDarkMode = await window.darkMode.shouldUseDarkColors()
+        theme = isDarkMode ? 'Dark' : 'Light'
+        $('#dark_mode_toggle').html('主题:'+(theme==='Dark'?'暗':'亮️'))
+      })
+    </script>
+  </body>
+</html>
